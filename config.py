@@ -30,6 +30,24 @@ def _load_dotenv() -> None:
 
 _load_dotenv()
 
+
+def _load_streamlit_secrets() -> None:
+    """On Streamlit Community Cloud there is no .env; settings come from the app's
+    Secrets. Merge any flat string secrets into the environment so the rest of
+    the config (plain os.getenv) works unchanged. Real env vars still win."""
+    try:
+        import streamlit as st
+
+        for key in list(st.secrets.keys()):
+            value = st.secrets[key]
+            if isinstance(value, str):
+                os.environ.setdefault(key, value)
+    except Exception:
+        pass  # no secrets file (local dev) or streamlit not importable — fine
+
+
+_load_streamlit_secrets()
+
 # ── TLS / corporate proxy handling ────────────────────────────────────
 # On networks that intercept SSL (e.g. corporate proxies), Python's default
 # certificate bundle won't trust the injected root CA. `truststore` makes

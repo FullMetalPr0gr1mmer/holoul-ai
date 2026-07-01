@@ -40,8 +40,20 @@ EXAMPLE_DOCS = [
 
 
 # ── cached engines ────────────────────────────────────────────────────
+@st.cache_resource(show_spinner="Preparing demo database…")
+def _bootstrap_db():
+    """Build the fictional database on first run (e.g. on Streamlit Cloud, where
+    the .db file is not committed)."""
+    if not config.DB_PATH.exists():
+        from data.build_db import build
+
+        build()
+    return str(config.DB_PATH)
+
+
 @st.cache_resource(show_spinner="Loading Text-to-SQL engine…")
 def _sql_engine():
+    _bootstrap_db()
     return get_text2sql()
 
 
@@ -199,6 +211,7 @@ def render_payload(payload: dict) -> None:
 
 # ── main ──────────────────────────────────────────────────────────────
 def main() -> None:
+    _bootstrap_db()  # self-initialize the database on first run (e.g. cloud)
     mode = render_sidebar()
     st.title("Holoul AI Assistant")
     st.caption("Ask about operational data (Text-to-SQL) or services & policies (RAG). Demo data is fictional.")

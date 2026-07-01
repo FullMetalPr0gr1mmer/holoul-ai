@@ -115,6 +115,28 @@ Then open the browser tab Streamlit prints (usually http://localhost:8501).
 
 ---
 
+## Deploy to Streamlit Community Cloud
+
+1. **Make the GitHub repo public** (Settings → change visibility), *or* authorize
+   Streamlit to access private repos. Streamlit shows "repository does not exist"
+   when it can't see a private repo.
+2. On [share.streamlit.io](https://share.streamlit.io): **New app** → pick the
+   repo, branch `main`, main file `app.py`.
+3. **Advanced settings → Secrets** — paste your provider config (see
+   `.streamlit/secrets.toml.example`):
+   ```toml
+   LLM_PROVIDER = "gemini"
+   EMBEDDING_PROVIDER = "gemini"
+   GEMINI_API_KEY = "your-key-here"
+   GEMINI_MODEL = "gemini-2.5-flash"
+   GEMINI_EMBEDDING_MODEL = "gemini-embedding-001"
+   ```
+4. **Deploy.** The app builds its fictional database automatically on first run,
+   then indexes the documents. No `.env` or `.db` file is needed in the repo.
+
+> The database and embedding cache are generated at runtime and are intentionally
+> not committed. Secrets never live in the repo — they come from Streamlit.
+
 ## Project layout
 
 ```
