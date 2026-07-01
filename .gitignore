@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+data/holoul.db
+data/.rag_cache.npz
+edgeprof*/
+.venv/
+venv/
+.streamlit/secrets.toml
