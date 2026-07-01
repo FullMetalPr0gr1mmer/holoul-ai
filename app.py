@@ -202,9 +202,20 @@ def render_payload(payload: dict) -> None:
             with st.expander(f"[Source {s['n']}] {s['source']} · score {s['score']}"):
                 st.write(s["snippet"])
     elif kind == "error":
-        st.warning("The AI service is busy right now — please try again in a moment.")
+        msg = payload.get("message", "")
+        misconfigured = any(
+            s in msg for s in ("Ollama", "Connection refused", "No LLM provider", "provider available")
+        )
+        if misconfigured:
+            st.warning(
+                "No cloud AI provider is configured. Add **GEMINI_API_KEY** (and "
+                "`LLM_PROVIDER=\"gemini\"`, `EMBEDDING_PROVIDER=\"gemini\"`) in the "
+                "app's **Secrets**, then reboot the app."
+            )
+        else:
+            st.warning("The AI service is busy right now — please try again in a moment.")
         with st.expander("Technical details"):
-            st.write(payload.get("message", ""))
+            st.write(msg)
     else:
         st.markdown(payload["answer"])
 
