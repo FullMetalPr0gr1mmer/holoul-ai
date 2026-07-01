@@ -62,6 +62,28 @@ def _rag_engine():
     return get_rag()
 
 
+@st.cache_data(ttl=30, show_spinner=False)
+def _provider_health() -> tuple[bool, str]:
+    """Warn early if the configured LLM provider can't actually be reached
+    (e.g. deployed to the cloud with no GEMINI_API_KEY, so it fell back to a
+    local Ollama that isn't there)."""
+    llm = get_llm()
+    if llm.provider == "ollama":
+        try:
+            import requests
+
+            requests.get(f"{config.OLLAMA_HOST}/api/tags", timeout=2).raise_for_status()
+            return True, ""
+        except Exception:
+            return False, (
+                "⚠️ No cloud AI provider is configured — the app fell back to local "
+                "Ollama, which isn't available here. Add **GEMINI_API_KEY** (with "
+                "`LLM_PROVIDER=\"gemini\"` and `EMBEDDING_PROVIDER=\"gemini\"`) in the "
+                "app's **Settings → Secrets**, then **reboot** the app."
+            )
+    return True, ""
+
+
 @st.cache_data(show_spinner=False)
 def _db_stats() -> dict:
     if not config.DB_PATH.exists():
@@ -226,6 +248,10 @@ def main() -> None:
     mode = render_sidebar()
     st.title("Holoul AI Assistant")
     st.caption("Ask about operational data (Text-to-SQL) or services & policies (RAG). Demo data is fictional.")
+
+    healthy, health_msg = _provider_health()
+    if not healthy:
+        st.warning(health_msg)
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
